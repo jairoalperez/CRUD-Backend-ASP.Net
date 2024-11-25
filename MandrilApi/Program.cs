@@ -1,27 +1,31 @@
+using MandrilApi.Database;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 using MandrilApi.Helpers;
+using DotNetEnv;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load environment variables
-DotNetEnv.Env.Load();
-
-// Read the connection string from appsettings.json
-var rawConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+// Get and prepare the connection string
+var rawConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                           ?? throw new InvalidOperationException(Messages.Database.NoConnectionString);
-
-// Replace environment variables on the connection string
 var connectionString = ReplaceConnectionString.BuildConnectionString(rawConnectionString);
 
-// Start the MySQL Connection (MariaDB)
-builder.Services.AddTransient<MySqlConnection>(_ => new MySqlConnection(connectionString));
+// Configuration of EF Core with MariaDB
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(
+        connectionString,
+        new MySqlServerVersion(new Version(10, 5, 0))
+    )
+);
 
-// Services and Middlewares
+
+// Servicios y middlewares
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddTransient<DatabaseConnection>();
+builder.Services.AddScoped<DatabaseTester>();
 
 var app = builder.Build();
 

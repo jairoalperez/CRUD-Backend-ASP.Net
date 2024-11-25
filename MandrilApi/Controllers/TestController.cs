@@ -4,23 +4,28 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class TestController : ControllerBase
 {
-    private readonly DatabaseConnection _repository;
+    private readonly DatabaseTester _tester;
 
-    public TestController(DatabaseConnection repository)
+    public TestController(DatabaseTester tester)
     {
-        _repository = repository;
+        _tester = tester;
     }
 
     [HttpGet("database")]
     public async Task<IActionResult> TestDatabaseConnection()
     {
-        var isConnected = await _repository.ProbarConexionAsync();
-
-        if (isConnected)
+        try
         {
-            return Ok("¡Conexión exitosa con la base de datos!");
-        }
+            var isConnected = await _tester.ProbarConexionAsync();
 
-        return StatusCode(500, "No se pudo conectar a la base de datos.");
+            if (isConnected)
+                return Ok("¡Conexión exitosa con la base de datos!");
+
+            return StatusCode(500, "No se pudo conectar a la base de datos.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al conectar a la base de datos: {ex.Message}");
+        }
     }
 }
