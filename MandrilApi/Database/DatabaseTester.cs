@@ -13,13 +13,13 @@ public class DatabaseTester
     {
         try
         {
-            // Ejecuta una consulta básica para verificar la conexión
+            // Basic query to check connection
             var result = await _dbContext.Database.ExecuteSqlRawAsync("SELECT 1");
-            return result == -1; // ExecuteSqlRawAsync devuelve -1 si se ejecutó con éxito.
+            return result == -1; // ExecuteSqlRawAsync returns -1 if it succeded
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al probar la conexión: {ex.Message}");
+            Console.WriteLine($"Error testing connection: {ex.Message}");
             throw;
         }
     }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MandrilApi.Helpers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -19,13 +20,13 @@ public class TestController : ControllerBase
             var isConnected = await _tester.ProbarConexionAsync();
 
             if (isConnected)
-                return Ok("¡Conexión exitosa con la base de datos!");
+                return Ok(Messages.Database.ConnectionSuccess);
 
-            return StatusCode(500, "No se pudo conectar a la base de datos.");
+            return StatusCode(500, Messages.Database.ConnectionFailed);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Error al conectar a la base de datos: {ex.Message}");
+            return StatusCode(500, $"Error connecting with the Database: {ex.Message}");
         }
     }
 }

@@ -21,7 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 
-// Servicios y middlewares
+// Services and middlewares
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
