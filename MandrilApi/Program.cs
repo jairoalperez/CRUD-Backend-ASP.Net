@@ -1,23 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
-using DotNetEnv;
 using MandrilApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cargar variables de entorno
+// Load environment variables
 DotNetEnv.Env.Load();
 
-// Leer la cadena de conexión desde appsettings.json
-var rawConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Read the connection string from appsettings.json
+var rawConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                          ?? throw new InvalidOperationException(Messages.Database.NoConnectionString);
 
-// Reemplazar variables de entorno en la cadena de conexión
+// Replace environment variables on the connection string
 var connectionString = ReplaceConnectionString.BuildConnectionString(rawConnectionString);
 
-// Registrar el servicio MySqlConnection con la cadena de conexión interpolada
+// Start the MySQL Connection (MariaDB)
 builder.Services.AddTransient<MySqlConnection>(_ => new MySqlConnection(connectionString));
 
-// Configuración de servicios y middlewares
+// Services and Middlewares
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

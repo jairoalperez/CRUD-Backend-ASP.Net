@@ -11,5 +11,10 @@ namespace MandrilApi.Helpers
         {
             public const string NotFound = "";
         }
+
+        public static class Database
+        {
+            public const string NoConnectionString = "Couldn't Find a Database Connection String";
+        }
     }
 }

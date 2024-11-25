@@ -15,7 +15,7 @@ public class DatabaseConnection
         {
             string query = "SELECT 1";
 
-            await _connection.OpenAsync(); // Abre la conexión
+            await _connection.OpenAsync(); // Open Connection
 
             using var command = new MySqlCommand(query, _connection);
             var result = await command.ExecuteScalarAsync(); // Ejecuta el query y obtiene el resultado

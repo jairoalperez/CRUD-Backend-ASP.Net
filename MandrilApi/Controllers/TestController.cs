@@ -11,8 +11,8 @@ public class TestController : ControllerBase
         _repository = repository;
     }
 
-    [HttpGet("test-connection")]
-    public async Task<IActionResult> TestConnection()
+    [HttpGet("database")]
+    public async Task<IActionResult> TestDatabaseConnection()
     {
         var isConnected = await _repository.ProbarConexionAsync();
 
