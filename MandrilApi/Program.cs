@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using DotNetEnv;
+using MandrilApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,12 +12,7 @@ DotNetEnv.Env.Load();
 var rawConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Reemplazar variables de entorno en la cadena de conexión
-var connectionString = rawConnectionString?
-    .Replace("${DB_SERVER}", Environment.GetEnvironmentVariable("DB_SERVER") ?? "")
-    .Replace("${DB_PORT}", Environment.GetEnvironmentVariable("DB_PORT") ?? "")
-    .Replace("${DB_NAME}", Environment.GetEnvironmentVariable("DB_NAME") ?? "")
-    .Replace("${DB_USER}", Environment.GetEnvironmentVariable("DB_USER") ?? "")
-    .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "");
+var connectionString = ReplaceConnectionString.BuildConnectionString(rawConnectionString);
 
 // Registrar el servicio MySqlConnection con la cadena de conexión interpolada
 builder.Services.AddTransient<MySqlConnection>(_ => new MySqlConnection(connectionString));
