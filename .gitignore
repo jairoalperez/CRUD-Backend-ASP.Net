@@ -30,6 +30,7 @@ TestResults/
 .publishSettings
 .vscode/launch.json
 .vscode/tasks.json
+.env
 
 # Ignore temporary, security, and backup files
 *.bak
