@@ -27,7 +27,7 @@ public class TestController : ControllerBase
     {
         try
         {
-            var result = await _dbContext.Database.ExecuteSqlRawAsync("SELECT 1");
+            var result = await _dbContext.Database.ExecuteSqlRawAsync("SELECT * FROM mandril");
             if (result == -1)
                 return Ok(Messages.Database.ConnectionSuccess);
 

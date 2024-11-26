@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MandrilApi.Models;
 using MandrilApi.Services;
+using Microsoft.EntityFrameworkCore;
+using MandrilApi.Helpers;
 
 namespace MandrilApi.Controllers;
 
@@ -14,91 +16,101 @@ namespace MandrilApi.Controllers;
 [Route("[controller]")]
 public class MandrilController : ControllerBase
 {
-    [HttpGet("all")]
-    public ActionResult<IEnumerable<Mandril>> GetMandriles()
+
+    private readonly AppDbContext _context;
+    public MandrilController(AppDbContext context)
     {
-        var allMandriles = MandrilDataStore.Current.Mandriles;
+        _context = context;
+    }
 
-        if (allMandriles.Count < 1)
+    [HttpGet("all")]
+    public async Task<IActionResult> GetMandriles()
+    {
+        try
         {
-            return NotFound("There are no mandriles to show");
+            var mandriles = await _context.Mandriles.Include(m => m.Skills).ToListAsync();
+            return Ok(mandriles);
         }
-
-        return Ok(allMandriles);
+        catch (Exception ex)
+        {
+            return Problem(Messages.Database.ConnectionFailed, ex.Message);
+        }
     }
 
     [HttpGet("{mandrilId}")]
-    public ActionResult<Mandril> GetMandril(int mandrilId)
+    public async Task<ActionResult<Mandril>> GetMandril(int mandrilId)
     {
-        var mandril = MandrilDataStore.Current.Mandriles.FirstOrDefault(x => x.Id == mandrilId);
+        var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(x => x.Id == mandrilId);
+
         if (mandril == null)
         {
             return NotFound($"Mandril with Id '{mandrilId}' do not exist");
         }
-        
+
         return Ok(mandril);
     }
 
     [HttpPost]
-    public ActionResult<Mandril> PostMandril(MandrilInsert mandrilInsert)
+    public async Task<ActionResult<Mandril>> PostMandril(MandrilInsert mandrilInsert)
     {
-        var maxMandrilId = MandrilDataStore.Current.Mandriles.DefaultIfEmpty(new Mandril { Id = 0 }).Max(x => x.Id);
-        var newMandril = new Mandril()
+        var newMandril = new Mandril
         {
-            Id = maxMandrilId + 1,
             FirstName = mandrilInsert.FirstName,
             LastName = mandrilInsert.LastName
         };
 
-        MandrilDataStore.Current.Mandriles.Add(newMandril);
+        _context.Mandriles.Add(newMandril);
+        await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetMandril),
-            new {mandrilId = newMandril.Id},
-            newMandril
-        );
+             new { mandrilId = newMandril.Id },
+             newMandril);
     }
 
     [HttpPut("{mandrilId}")]
-    public ActionResult<Mandril> PutMandril([FromRoute] int mandrilId, [FromBody] MandrilInsert mandrilInsert)
+    public async Task<ActionResult<Mandril>> PutMandril([FromRoute] int mandrilId, [FromBody] MandrilInsert mandrilInsert)
     {
-        var mandril = MandrilDataStore.Current.Mandriles.FirstOrDefault(x => x.Id == mandrilId);
+        var mandril = await _context.Mandriles.FirstOrDefaultAsync(x => x.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound($"Mandril with Id '{mandrilId}' does not exist");
         }
 
         mandril.FirstName = mandrilInsert.FirstName;
         mandril.LastName = mandrilInsert.LastName;
-        
+
+        await _context.SaveChangesAsync();
+
         return Ok($"Mandril with id '{mandrilId}' has been edited");
     }
 
     [HttpDelete("{mandrilId}")]
-    public ActionResult<Mandril> DeleteMandril([FromRoute] int mandrilId)
+    public async Task<ActionResult<Mandril>> DeleteMandril([FromRoute] int mandrilId)
     {
-        var mandril = MandrilDataStore.Current.Mandriles.FirstOrDefault(x => x.Id == mandrilId);
+        var mandril = await _context.Mandriles.FirstOrDefaultAsync(x => x.Id == mandrilId);
         if (mandril == null)
         {
             return NotFound($"Mandril with Id '{mandrilId}' do not exist");
         }
 
-        MandrilDataStore.Current.Mandriles.Remove(mandril);
-        
+        _context.Mandriles.Remove(mandril);
+        await _context.SaveChangesAsync();
+
         return Ok($"Mandril with id '{mandrilId}' has been deleted");
-        
     }
 
     [HttpDelete("all")]
-    public ActionResult<IEnumerable<Mandril>> DeleteMandriles()
+    public async Task<ActionResult<IEnumerable<Mandril>>> DeleteMandriles()
     {
-        var allMandriles = MandrilDataStore.Current.Mandriles;
+        var allMandriles = await _context.Mandriles.ToListAsync();
 
         if (allMandriles.Count < 1)
         {
             return NotFound("There are no mandriles to delete");
         }
 
-        MandrilDataStore.Current.Mandriles.Clear();
+        _context.Mandriles.RemoveRange(allMandriles);
+        await _context.SaveChangesAsync();
 
         return Ok($"All mandriles have been deleted");
     }

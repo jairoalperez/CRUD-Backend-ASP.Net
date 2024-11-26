@@ -9,7 +9,7 @@ namespace MandrilApi.Models
     public class MandrilInsert
     {
         [Required]
-        [MaxLength(50)]
+        [MaxLength(100)]
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
     }
