@@ -1,15 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
 using MandrilApi.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
 public class TestController : ControllerBase
 {
-    private readonly DatabaseTester _tester;
-
-    public TestController(DatabaseTester tester)
+    // TEST API CONNECTION
+    [HttpGet()]
+    public IActionResult TestAPI()
     {
-        _tester = tester;
+        return Ok(Messages.API.Working);
+    }
+
+
+
+    //TEST DATABASE CONNECTION
+    private readonly AppDbContext _dbContext;
+    public TestController(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
     }
 
     [HttpGet("database")]
@@ -17,9 +27,8 @@ public class TestController : ControllerBase
     {
         try
         {
-            var isConnected = await _tester.ProbarConexionAsync();
-
-            if (isConnected)
+            var result = await _dbContext.Database.ExecuteSqlRawAsync("SELECT 1");
+            if (result == -1)
                 return Ok(Messages.Database.ConnectionSuccess);
 
             return StatusCode(500, Messages.Database.ConnectionFailed);

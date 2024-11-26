@@ -7,6 +7,10 @@ namespace MandrilApi.Helpers
 {
     public static class Messages
     {
+        public static class API
+        {
+            public const string Working                 = "The Mandriles Rest API is working good!";
+        }
         public static class Mandril
         {
             public const string NotFound                = "";
