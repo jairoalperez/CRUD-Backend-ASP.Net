@@ -11,10 +11,6 @@ namespace MandrilApi.Helpers
         {
             public const string Working                 = "The Mandriles Rest API is working good!";
         }
-        public static class Mandril
-        {
-            public const string NotFound                = "";
-        }
 
         public static class Database
         {
@@ -22,5 +18,17 @@ namespace MandrilApi.Helpers
             public const string ConnectionSuccess       = "Database Connected Successfully!";
             public const string ConnectionFailed        = "Couldn't Connect to the Database";
         }
+
+        public static class Mandril
+        {
+            public const string NotFound                = "Couldn't find any Mandril with this Id";
+            public const string Created                 = "Mandril Created Successfully!";
+            public const string Edited                  = "Mandril Edited Successfuly!";
+            public const string Deleted                 = "Mandril has been deleted";
+            public const string AllDeleted              = "All the Mandriles have been deleted";
+            public const string NoMandriles             = "Couldn't find any Mandriles in the database";
+
+        }
+        
     }
 }

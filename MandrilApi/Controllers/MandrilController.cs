@@ -28,8 +28,13 @@ public class MandrilController : ControllerBase
     {
         try
         {
-            var mandriles = await _context.Mandriles.Include(m => m.Skills).ToListAsync();
-            return Ok(mandriles);
+            var allMandriles = await _context.Mandriles.Include(m => m.Skills).ToListAsync();
+            if (allMandriles.Count < 1)
+            {
+                return NotFound(Messages.Mandril.NoMandriles);
+            }
+
+            return Ok(allMandriles);
         }
         catch (Exception ex)
         {
@@ -44,7 +49,7 @@ public class MandrilController : ControllerBase
 
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         return Ok(mandril);
@@ -62,9 +67,15 @@ public class MandrilController : ControllerBase
         _context.Mandriles.Add(newMandril);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetMandril),
-             new { mandrilId = newMandril.Id },
-             newMandril);
+        return CreatedAtAction(
+            nameof(GetMandril),
+            new { mandrilId = newMandril.Id },
+            new
+            {
+                Message = Messages.Mandril.Created,
+                Mandril = newMandril
+            }
+            );
     }
 
     [HttpPut("{mandrilId}")]
@@ -73,7 +84,7 @@ public class MandrilController : ControllerBase
         var mandril = await _context.Mandriles.FirstOrDefaultAsync(x => x.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' does not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         mandril.FirstName = mandrilInsert.FirstName;
@@ -81,7 +92,7 @@ public class MandrilController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok($"Mandril with id '{mandrilId}' has been edited");
+        return Ok(Messages.Mandril.Edited);
     }
 
     [HttpDelete("{mandrilId}")]
@@ -96,7 +107,7 @@ public class MandrilController : ControllerBase
         _context.Mandriles.Remove(mandril);
         await _context.SaveChangesAsync();
 
-        return Ok($"Mandril with id '{mandrilId}' has been deleted");
+        return Ok(Messages.Mandril.Deleted);
     }
 
     [HttpDelete("all")]
@@ -106,12 +117,12 @@ public class MandrilController : ControllerBase
 
         if (allMandriles.Count < 1)
         {
-            return NotFound("There are no mandriles to delete");
+            return NotFound(Messages.Mandril.NoMandriles);
         }
 
         _context.Mandriles.RemoveRange(allMandriles);
         await _context.SaveChangesAsync();
 
-        return Ok($"All mandriles have been deleted");
+        return Ok(Messages.Mandril.AllDeleted);
     }
 }
