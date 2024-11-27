@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MandrilApi.Models;
 using MandrilApi.Services;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace MandrilApi.Controllers;
@@ -80,15 +81,15 @@ public class SkillController : ControllerBase
     }
 
     [HttpPut("{skillId}")]
-    public ActionResult<Skill> PutSkill([FromRoute] int mandrilId, [FromRoute] int skillId, [FromBody] SkillInsert skillInsert)
+    public async Task<ActionResult<Skill>> PutSkill([FromRoute] int mandrilId, [FromRoute] int skillId, [FromBody] SkillInsert skillInsert)
     {
-        var mandril = MandrilDataStore.Current.Mandriles.FirstOrDefault(x => x.Id == mandrilId);
+        var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
             return NotFound($"Mandril with Id '{mandrilId}' do not exist");
         }
 
-        var skill = mandril.Skills?.FirstOrDefault(h => h.Id == skillId);
+        var skill = mandril.Skills?.FirstOrDefault(s => s.Id == skillId);
         if (skill == null)
         {
             return NotFound($"Skill with Id '{skillId}' does not exist on mandril with Id '{mandrilId}'");
@@ -103,13 +104,15 @@ public class SkillController : ControllerBase
         skill.Name = skillInsert.Name;
         skill.Power = skillInsert.Power;
 
+        await _context.SaveChangesAsync();
+
         return Ok($"Skill with Id '{skillId}' has been edited on mandril with Id '{mandrilId}'");
     }
 
     [HttpDelete("{skillId}")]
-    public ActionResult<Skill> DeleteSkill([FromRoute] int mandrilId, [FromRoute] int skillId)
+    public async Task<ActionResult<Skill>> DeleteSkill([FromRoute] int mandrilId, [FromRoute] int skillId)
     {
-        var mandril = MandrilDataStore.Current.Mandriles.FirstOrDefault(x => x.Id == mandrilId);
+        var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
             return NotFound($"Mandril with Id '{mandrilId}' do not exist");
@@ -121,21 +124,23 @@ public class SkillController : ControllerBase
             return NotFound($"Skill with Id '{skillId}' does not exist on mandril with Id '{mandrilId}'");
         }
 
-        //mandril.Skills?.Remove(skill);
+        mandril?.Skills?.Remove(skill);
+        await _context.SaveChangesAsync();
 
         return Ok($"Skill with id '{skillId}' has been deleted on mandril with Id '{mandrilId}'"); 
     }
 
     [HttpDelete("all")]
-    public ActionResult<IEnumerable<Skill>> DeleteSkill([FromRoute] int mandrilId)
+    public async Task<ActionResult<IEnumerable<Skill>>> DeleteSkill([FromRoute] int mandrilId)
     {
-        var mandril = MandrilDataStore.Current.Mandriles.FirstOrDefault(x => x.Id == mandrilId);
+        var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
             return NotFound($"Mandril with Id '{mandrilId}' do not exist");
         }
 
-        //mandril.Skills?.Clear();
+        mandril.Skills.Clear();
+        await _context.SaveChangesAsync();
 
         return Ok($"All skills have been deleted on mandril with Id {mandrilId}");
     }
