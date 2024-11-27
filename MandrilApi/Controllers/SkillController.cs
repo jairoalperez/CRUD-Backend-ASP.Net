@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MandrilApi.Models;
-using MandrilApi.Services;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using MandrilApi.Helpers;
 
 namespace MandrilApi.Controllers;
 
@@ -24,10 +23,15 @@ public class SkillController : ControllerBase
         var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
-        return Ok(mandril.Skills);
+        if (mandril?.Skills?.Count < 1)
+        {
+            return NotFound(Messages.Skill.NoSkills);
+        }
+
+        return Ok(mandril?.Skills);
     }
 
     [HttpGet("{skillId}")]
@@ -36,13 +40,13 @@ public class SkillController : ControllerBase
         var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         var skill = mandril.Skills?.FirstOrDefault(h => h.Id == skillId);
         if (skill == null)
         {
-            return NotFound($"Skill with Id '{skillId}' does not exist on mandril with Id '{mandrilId}'");
+            return NotFound(Messages.Skill.NotFound);
         }
 
         return Ok(skill);
@@ -54,14 +58,14 @@ public class SkillController : ControllerBase
         var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         var currentSkill = mandril.Skills?.FirstOrDefault(h => h.Name == skillInsert.Name);
 
         if (currentSkill != null)
         {
-            return BadRequest("There is already a skill with the same name");
+            return BadRequest(Messages.Skill.Repeated);
         }
 
         var newSkill = new Skill() 
@@ -74,9 +78,13 @@ public class SkillController : ControllerBase
         mandril.Skills?.Add(newSkill);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetSkill),
+        return CreatedAtAction(
+            nameof(GetSkill),
             new {mandrilId = mandrilId, skillId = newSkill.Id},
-            newSkill
+            new {
+                Message = Messages.Skill.Created,
+                Skill = newSkill
+                }
         );
     }
 
@@ -86,19 +94,19 @@ public class SkillController : ControllerBase
         var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         var skill = mandril.Skills?.FirstOrDefault(s => s.Id == skillId);
         if (skill == null)
         {
-            return NotFound($"Skill with Id '{skillId}' does not exist on mandril with Id '{mandrilId}'");
+            return NotFound(Messages.Skill.NotFound);
         }
 
         var sameSkill = mandril.Skills?.FirstOrDefault(h => h.Id != skillId && h.Name == skillInsert.Name);
         if (sameSkill != null)
         {
-            return BadRequest("There is already a skill with the same name");
+            return BadRequest(Messages.Skill.Repeated);
         }
 
         skill.Name = skillInsert.Name;
@@ -106,7 +114,7 @@ public class SkillController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        return Ok($"Skill with Id '{skillId}' has been edited on mandril with Id '{mandrilId}'");
+        return Ok(Messages.Skill.Edited);
     }
 
     [HttpDelete("{skillId}")]
@@ -115,19 +123,19 @@ public class SkillController : ControllerBase
         var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         var skill = mandril.Skills?.FirstOrDefault(h => h.Id == skillId);
         if (skill == null)
         {
-            return NotFound($"Skill with Id '{skillId}' does not exist on mandril with Id '{mandrilId}'");
+            return NotFound(Messages.Skill.NotFound);
         }
 
         mandril?.Skills?.Remove(skill);
         await _context.SaveChangesAsync();
 
-        return Ok($"Skill with id '{skillId}' has been deleted on mandril with Id '{mandrilId}'"); 
+        return Ok(Messages.Skill.Deleted); 
     }
 
     [HttpDelete("all")]
@@ -136,12 +144,12 @@ public class SkillController : ControllerBase
         var mandril = await _context.Mandriles.Include(m => m.Skills).FirstOrDefaultAsync(m => m.Id == mandrilId);
         if (mandril == null)
         {
-            return NotFound($"Mandril with Id '{mandrilId}' do not exist");
+            return NotFound(Messages.Mandril.NotFound);
         }
 
         mandril.Skills.Clear();
         await _context.SaveChangesAsync();
 
-        return Ok($"All skills have been deleted on mandril with Id {mandrilId}");
+        return Ok(Messages.Skill.AllDeleted);
     }
 }
